@@ -33,21 +33,21 @@ server.get("/", async (request, response) => {
     return content;
   });
 
-  //var newAppartments = [];
-  //
-  //for (item of pageContent) {
-  //  await page.waitForNavigation({ waitUntil: "networkidle2" });
-  //  await page.goto(String(item));
-  //
-  //  var title = await page.evaluate(() => {
-  //    return document.querySelector(".header-title").innerHTML;
-  //  });
-  //
-  //  newAppartments.push({ title });
-  //}
+  var newAppartments = [];
+
+  for (item of pageContent) {
+    const newPage = await browser.newPage();
+    await newPage.goto(String(item));
+
+    var title = await newPage.evaluate(() => {
+      return document.querySelector("div.header-title span").textContent;
+    });
+
+    newAppartments.push({ title });
+  }
 
   await browser.close();
-  response.send(pageContent);
+  response.send(newAppartments);
 });
 
 server.listen(3000, () => {
