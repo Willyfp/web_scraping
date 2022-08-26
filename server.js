@@ -17,17 +17,12 @@ server.get("/", async (request, response) => {
   });
 
   const pageContent = await page.evaluate(async () => {
-    const list = document.querySelectorAll(".card");
+    const list = document.querySelectorAll('.card [rel="follow"] .btn-details');
 
     var content = [];
 
     await list.forEach((item) => {
-      var itemHtml = item.innerHTML;
-      var d = document.createElement("DIV");
-      d.innerHTML = itemHtml;
-      var link = d.querySelector("a").href;
-
-      content.push(link);
+      content.push(item.href);
     });
 
     return content;
@@ -50,6 +45,4 @@ server.get("/", async (request, response) => {
   response.send(newAppartments);
 });
 
-server.listen(3000, () => {
-  console.log("success");
-});
+server.listen(3000);
