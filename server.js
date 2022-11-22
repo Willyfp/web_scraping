@@ -11,7 +11,7 @@ const {
 
 const { getFirestore } = require("firebase-admin/firestore");
 
-const serviceAccount = require("C:\\Users\\willy\\Downloads\\buscape-90a48-firebase-adminsdk-nmmin-173ced83df.json");
+const serviceAccount = require("/home/operador/gitWilly/web_scraping/buscape-90a48-firebase-adminsdk-nmmin-7e3464c47a.json");
 
 initializeApp({
   credential: cert(serviceAccount),
@@ -30,9 +30,8 @@ server.get("/", async (request, response) => {
 
   while (continuar) {
     const page = await browser.newPage();
-    await page.goto(
-      `https://www.imobiliarialal.com.br/imoveis/para-alugar?pagina=${pagina}`
-    );
+
+    await page.setDefaultNavigationTimeout(0);
 
     page.on("console", async (msg) => {
       const msgArgs = msg.args();
@@ -40,6 +39,12 @@ server.get("/", async (request, response) => {
         console.log(await msgArgs[i].jsonValue());
       }
     });
+
+    console.log(pagina);
+
+    await page.goto(
+      `https://www.imobiliarialal.com.br/imoveis/para-alugar?pagina=${pagina}`
+    );
 
     const pageContent = await page.evaluate(async () => {
       const list = document.querySelectorAll(
@@ -59,8 +64,8 @@ server.get("/", async (request, response) => {
 
     for (item of pageContent) {
       const newPage = await browser.newPage();
+      await newPage.setDefaultNavigationTimeout(0);
       await newPage.goto(String(item));
-
       const apartment = await newPage.evaluate(async () => {
         const description = document.querySelectorAll("h1 span");
         const info = document.querySelectorAll(".item-info");
@@ -135,26 +140,26 @@ server.get("/", async (request, response) => {
       { waitUntil: "load", timeout: 0 }
     );
 
-    const nextButton = await page.evaluate(async () => {
-      const hasButton = document.querySelector(".hidden-sm-down");
+    const noResultsMessage = await page.evaluate(async () => {
+      const textNotContent = await document.getElementsByClassName(
+        "no-results-message box-inner"
+      );
 
-      if (hasButton) {
-        return true;
-      } else {
-        return false;
-      }
+      return textNotContent.length > 0;
     });
 
-    if (nextButton) {
-      pagina++;
+    if (noResultsMessage) {
+      break;
     } else {
-      continuar = false;
+      pagina++;
     }
   }
 
   await browser.close();
 
   response.send("deu bom");
+
+  process.exit();
 });
 
 server.listen(3000);
